@@ -1,0 +1,48 @@
+[package]
+name = "nexus-flow"
+version = "0.1.0"
+edition = "2021"
+description = "DAG workflow engine for multi-step agent pipelines in the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "workflow", "dag", "flow"]
+categories = ["asynchronous", "development-tools"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+nexus-kernel = { path = "../nexus-kernel" }
+nexus-router = { path = "../nexus-router" }
+nexus-mem = { path = "../nexus-mem" }
+nexus-tools = { path = "../nexus-tools" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
+bytes = { workspace = true }
+
+# Specific dependencies
+# Embedded SQLite for workflow checkpointing
+libsql = "0.4"
+
+# Template rendering for agent prompts
+handlebars = "6"
+
+# JSON Schema validation for conditional branching
+jsonschema = "0.17"
+
+# Graph data structures for DAG operations
+petgraph = "0.6"

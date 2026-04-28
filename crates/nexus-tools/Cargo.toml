@@ -1,0 +1,49 @@
+[package]
+name = "nexus-tools"
+version = "0.1.0"
+edition = "2021"
+description = "WASM plugin sandbox and tool execution engine for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "wasm", "sandbox", "plugins"]
+categories = ["asynchronous", "wasm"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+
+# Async runtime and primitives (workspace)
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization and types (workspace)
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling and instrumentation (workspace)
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+# Concurrent collections (workspace)
+dashmap = { workspace = true }
+
+# WASM runtime and WASI support
+wasmtime = "22"
+wasmtime-wasi = "22"
+
+# JSON Schema validation for tool I/O
+jsonschema = "0.17"
+
+# Cryptographic hashing for tool integrity verification
+sha2 = "0.10"
+hex = "0.4"
+
+# TOML parsing for tool manifests
+toml = { version = "0.8" }

@@ -1,0 +1,31 @@
+[package]
+name = "nexus-proto"
+version = "0.1.0"
+edition = "2021"
+description = "Shared types, traits, and protocol definitions for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "runtime", "proto", "types"]
+categories = ["asynchronous", "data-structures"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Serialization / Deserialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Core types
+uuid = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Async runtime and primitives
+tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }

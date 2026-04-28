@@ -1,0 +1,146 @@
+# =============================================================================
+# RUST WORKSPACE
+# =============================================================================
+
+# Compiler output
+/target/
+
+# Cargo.lock is committed for binary crates to ensure reproducible builds,
+# but ignored for library-only crates to allow flexible dependency resolution.
+# For the nexus workspace (binary-focused runtime), we commit Cargo.lock.
+# Uncomment the next line if converting to a library-only distribution:
+# Cargo.lock
+
+# =============================================================================
+# IDE & EDITOR
+# =============================================================================
+
+# IntelliJ IDEA / RustRover
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+*.bak
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux / Unix
+*~.fuse_hidden*
+.Trash-*
+.nfs*
+
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+*.pem
+*.key
+*.crt
+secrets/
+
+# =============================================================================
+# NEXUS RUNTIME ARTIFACTS
+# =============================================================================
+
+# Embedded databases (L2/L4 memory tiers)
+nexus.db
+nexus.db-*
+nexus-checkpoint.db
+nexus-checkpoint.db-*
+*.sqlite
+*.sqlite3
+
+# Compiled WASM tool plugins (built artifacts, not source)
+# Source .wat / Rust WASM crates should be tracked; compiled .wasm should not
+tools/**/*.wasm
+!tools/**/src/
+!tools/**/Cargo.toml
+
+# Runtime data directories
+/data/
+/logs/
+/checkpoints/
+/agent-state/
+
+# Vector index files (L3 memory - usearch)
+*.usearch
+*.hnsw
+*.index
+
+# =============================================================================
+# TEST & DEVELOPMENT# =============================================================================
+
+# Temporary files
+/tmp/
+temp/
+*.tmp
+
+# Snapshot testing artifacts
+*.snap
+*.snap.new
+
+# Coverage reports
+tarpaulin-report.html
+cov/
+lcov.info
+
+# Fuzzing corpora
+cargo-fuzz/corpus/
+
+# =============================================================================
+# DOCUMENTATION & BUILD
+# =============================================================================
+
+# Generated docs
+target/doc/
+docs/_build/
+
+# Release artifacts
+dist/
+release/
+*.tar.gz
+*.zip
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Node modules (if any frontend tooling)
+node_modules/
+
+# Python virtual environments (if any scripting helpers)
+venv/
+.venv/
+__pycache__/
+
+# IDE project settings that are user-specific
+*.sublime-project
+*.sublime-workspace

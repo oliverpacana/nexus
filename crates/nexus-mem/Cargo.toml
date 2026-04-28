@@ -1,0 +1,48 @@
+[package]
+name = "nexus-mem"
+version = "0.1.0"
+edition = "2021"
+description = "Four-tier memory hierarchy for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "memory", "vector", "sqlite"]
+categories = ["data-structures", "asynchronous"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+
+# Async runtime and primitives (workspace)
+tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization and types (workspace)
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling and instrumentation (workspace)
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+# L2 Episodic Memory: Embedded SQLite
+libsql = "0.4"
+
+# L4 Procedural Memory: Embedded KV store
+sled = "0.34"
+
+# L3 Semantic Memory: Vector index (HNSW)
+usearch = "2"
+
+# Embedding provider HTTP client (OpenAI-compatible APIs)
+reqwest = { version = "0.12", features = ["json"] }
+
+# Base64 encoding for embedding serialization
+base64 = "0.22"

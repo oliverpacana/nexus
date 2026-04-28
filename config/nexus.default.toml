@@ -1,0 +1,277 @@
+# =============================================================================
+# NEXUS AI AGENT RUNTIME — DEFAULT CONFIGURATION
+# File: nexus.default.toml
+# 
+# This is the canonical default configuration shipped with the Nexus project.
+# All fields are documented. User configs should override only what they need.
+# Paths are relative to the runtime working directory unless absolute.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# [runtime] — Core runtime behavior
+# -----------------------------------------------------------------------------
+[runtime]
+
+# Number of Tokio worker threads for the async runtime.
+# Set to 0 to auto-detect based on available CPU cores (recommended).
+worker_threads = 0
+
+# Maximum number of concurrent agents the kernel will schedule.
+# Exceeding this causes task submission to queue or reject based on policy.
+max_agents = 256
+
+# Stack size in kilobytes allocated per agent task in the Tokio runtime.
+# Increase for agents with deep recursion or large stack-allocated buffers.
+agent_stack_size_kb = 2048
+
+# Grace period in seconds to wait for agents to complete cleanup on shutdown.
+# Agents not terminated after this period are force-killed.
+shutdown_grace_period_secs = 30
+
+# -----------------------------------------------------------------------------
+# [scheduler] — Agent scheduling and resource allocation
+# -----------------------------------------------------------------------------
+[scheduler]
+
+# Default priority assigned to agents that don't specify one.
+# Valid values: "critical", "high", "normal", "low", "background"
+default_priority = "normal"
+
+# Token bucket capacity for per-agent rate limiting (requests per bucket).
+# Prevents any single agent from monopolizing model/router resources.
+token_bucket_capacity = 20
+
+# Rate at which tokens are refilled into each agent's bucket (tokens/second).
+# Higher values allow more bursty behavior; lower values enforce steady rate.
+token_bucket_refill_rate = 2.0
+
+# Relative CPU share weight for critical-priority agents.
+# Weights are proportional; e.g., critical=10 gets 2x CPU of normal=5.
+critical_priority_weight = 20
+# Relative CPU share weight for high-priority agents.
+high_priority_weight = 10
+
+# Relative CPU share weight for normal-priority agents (baseline).
+normal_priority_weight = 5
+
+# Relative CPU share weight for low-priority agents.
+low_priority_weight = 2
+
+# Relative CPU share weight for background-priority agents (best-effort).
+background_priority_weight = 1
+
+# -----------------------------------------------------------------------------
+# [memory] — 4-tier memory hierarchy configuration
+# -----------------------------------------------------------------------------
+[memory]
+
+# Maximum number of entries in L1 (working) memory per agent.
+# L1 is in-process Arc<RwLock<T>>; entries are evicted FIFO when full.
+working_max_entries = 128
+
+# Filesystem path to the SQLite database for L2 (episodic) memory.
+# Stores chronological event logs per agent; auto-created if missing.
+episodic_db_path = "./data/nexus-episodic.db"
+
+# Maximum number of episodic events retained per agent before trimming.
+# Older events are archived or deleted to control database growth.
+episodic_max_events_per_agent = 10000
+
+# Filesystem path to the usearch vector index file for L3 (semantic) memory.
+# Stores embeddings for cross-agent semantic retrieval.
+semantic_index_path = "./data/nexus-semantic.index"
+
+# Dimensionality of embedding vectors used for semantic search.
+# Must match the output dimension of your embedding_model.
+semantic_embedding_dimensions = 1536
+
+# HNSW construction parameter for usearch: higher = better quality, slower build.
+# Typical range: 64-512. 256 is a good balance for most workloads.
+semantic_ef_construction = 256
+
+# HNSW search parameter for usearch: higher = better recall, slower query.
+# Typical range: 16-128. 64 provides good accuracy/latency tradeoff.
+semantic_ef_search = 64
+
+# Filesystem path to the sled database for L4 (procedural) memory.
+# Stores structured, versioned knowledge graphs and long-term facts.
+procedural_db_path = "./data/nexus-procedural.sled"
+# Embedding provider for generating vectors for semantic memory.
+# Valid values: "local" (via candle/llama.cpp), "openai", "ollama"
+embedding_provider = "local"
+
+# Model identifier for the embedding provider.
+# Examples: "BAAI/bge-small-en-v1.5" (local), "text-embedding-3-small" (OpenAI)
+embedding_model = "BAAI/bge-small-en-v1.5"
+
+# -----------------------------------------------------------------------------
+# [tools] — WASM plugin sandbox configuration
+# -----------------------------------------------------------------------------
+[tools]
+
+# Maximum memory in megabytes allocated to a single WASM tool execution.
+# Prevents runaway tool memory usage; tool panics if exceeded.
+sandbox_max_memory_mb = 64
+
+# Maximum "fuel" (CPU instruction units) per tool call for deterministic limits.
+# 1 fuel ≈ 1 WASM instruction; 10M is generous for most tools.
+sandbox_max_fuel = 10000000
+
+# Hard timeout in milliseconds for any tool call before termination.
+# Protects against infinite loops or hanging external calls.
+sandbox_timeout_ms = 30000
+
+# Filesystem path to the directory containing registered WASM tool modules.
+# Tools are discovered by name: {registry_path}/{tool-name}/{version}.wasm
+registry_path = "./tools/registry"
+
+# Whether tools are granted network access by default unless explicitly denied.
+# For security-sensitive deployments, set to false and whitelist per-tool.
+allow_network_by_default = true
+
+# -----------------------------------------------------------------------------
+# [router] — Model routing and provider selection
+# -----------------------------------------------------------------------------
+[router]
+
+# Default routing policy when agent doesn't specify one.
+# "cost_optimized": prefer cheapest model under latency/cost ceilings
+# "latency_optimized": prefer fastest model under cost ceiling
+# "local_first": try local models first, fallback to cloud on failure
+default_policy = "cost_optimized"
+
+# Maximum acceptable latency in milliseconds for cost_optimized policy.
+# Routes to models expected to respond within this window.
+default_max_latency_ms = 2000
+
+# Maximum acceptable cost per 1K tokens for latency_optimized policy.
+# Routes to models under this cost threshold (USD).default_max_cost_per_1k_tokens = 0.01
+
+# Maximum time in seconds to wait for a complete model response.
+# Applies to both streaming and non-streaming requests.
+request_timeout_secs = 120
+
+# Number of retry attempts for transient failures (5xx, network errors).
+# Set to 0 to disable retries.
+max_retries = 3
+
+# Initial backoff delay in milliseconds for exponential retry backoff.
+# Actual backoff: retry_backoff_ms * (2 ^ attempt_number) + jitter.
+retry_backoff_ms = 250
+
+# Internal buffer size for token streaming pipelines.
+# Larger values improve throughput; smaller values reduce latency.
+stream_buffer_size = 32
+
+# -----------------------------------------------------------------------------
+# [providers] — Model provider configurations
+# Each subsection enables that provider when present.
+# API keys are read from environment variables, never stored in config.
+# -----------------------------------------------------------------------------
+
+[providers.openai]
+# Environment variable name containing the OpenAI API key.
+api_key_env = "OPENAI_API_KEY"
+
+# Base URL for API requests. Override for Azure OpenAI or compatible endpoints.
+base_url = "https://api.openai.com/v1"
+
+# Default model to use when agent doesn't specify one for this provider.
+default_model = "gpt-4o-mini"
+
+# Provider-specific timeout in seconds (overrides router.request_timeout_secs).
+timeout_secs = 90
+
+# Maximum context window size in tokens for this model/provider combination.
+# Used for context truncation and cost estimation.
+max_context_tokens = 128000
+
+[providers.anthropic]
+# Environment variable name containing the Anthropic API key.
+api_key_env = "ANTHROPIC_API_KEY"
+
+# Default model for Anthropic provider.
+default_model = "claude-3-5-sonnet-20241022"
+
+# Maximum context window for Claude 3.5 Sonnet.
+max_context_tokens = 200000
+[providers.groq]
+# Environment variable name containing the Groq API key.
+api_key_env = "GROQ_API_KEY"
+
+# Groq uses OpenAI-compatible API endpoint.
+base_url = "https://api.groq.com/openai/v1"
+
+# Default model for Groq provider (fast inference via LPU).
+default_model = "llama-3.1-70b-versatile"
+
+# Groq models typically have 8K-128K context; adjust per model used.
+max_context_tokens = 8192
+
+[providers.local]
+# Whether local model inference is enabled (requires llama.cpp/candle backend).
+enabled = true
+
+# Base URL for Ollama-compatible local inference server.
+base_url = "http://localhost:11434/v1"
+
+# Default local model identifier (must be pulled/available locally).
+default_model = "llama3.2"
+
+# Conservative context limit for local models; adjust based on VRAM.
+max_context_tokens = 8192
+
+# -----------------------------------------------------------------------------
+# [mesh] — Distributed P2P mesh configuration (libp2p)
+# Disabled by default; enable for multi-node agent deployments.
+# -----------------------------------------------------------------------------
+[mesh]
+
+# Whether distributed mesh mode is enabled.
+# When false, all agents run locally; when true, libp2p networking activates.
+enabled = false
+
+# Multiaddr listen address for incoming P2P connections.
+# Format: /ip4/<addr>/tcp/<port> or /ip6/<addr>/tcp/<port>
+listen_addr = "/ip4/0.0.0.0/tcp/9000"
+
+# Whether to enable mDNS for automatic LAN peer discovery.
+# Useful for local multi-machine deployments without manual peer config.
+mdns_enabled = true
+
+# Optional rendezvous server multiaddr for WAN peer discovery.
+# Leave empty to disable; useful for NAT traversal in distributed setups.
+rendezvous_addr = ""
+
+# Interval in milliseconds between CRDT blackboard state syncs.# Lower values increase consistency; higher values reduce network overhead.
+blackboard_sync_interval_ms = 5000
+
+# -----------------------------------------------------------------------------
+# [observability] — Logging, tracing, metrics, and TUI configuration
+# -----------------------------------------------------------------------------
+[observability]
+
+# Minimum log level to emit. "trace" is very verbose; "warn" for production.
+# Can be overridden at runtime via RUST_LOG environment variable.
+log_level = "info"
+
+# Format for structured log output.
+# "pretty": human-readable with colors; "json": machine-parseable; "compact": minimal
+log_format = "pretty"
+
+# Optional OpenTelemetry OTLP endpoint for exporting traces/metrics.
+# Example: "http://localhost:4317" for local collector.
+# Leave empty to disable OTLP export.
+otlp_endpoint = ""
+
+# Whether to enable collection and export of Prometheus-style metrics.
+# Metrics available at /metrics if axum API server is enabled.
+metrics_enabled = true
+
+# Filesystem path to the SQLite database for cost ledger accounting.
+# Tracks per-agent, per-task token usage and estimated costs.
+cost_ledger_db_path = "./data/nexus-cost-ledger.db"
+
+# Refresh rate in milliseconds for the ratatui TUI dashboard.
+# Lower values give smoother UI; higher values reduce CPU overhead.
+tui_refresh_rate_ms = 250

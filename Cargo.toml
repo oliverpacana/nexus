@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nexus-proto",
+    "crates/nexus-kernel",
+    "crates/nexus-mem",
+    "crates/nexus-tools",
+    "crates/nexus-router",
+    "crates/nexus-mesh",
+    "crates/nexus-flow",
+    "crates/nexus-obs",
+    "crates/nexus-cli",
+    "tools/web-search",
+    "tools/code-exec",
+    "tools/http-fetch",
+    "tools/file-read",
+    "examples/research-agent",
+    "examples/multi-agent-pipeline",
+]
+
+[workspace.dependencies]
+tokio = { version = "1.38", features = ["full"] }
+tokio-stream = { version = "0.1" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+anyhow = { version = "1" }
+thiserror = { version = "1" }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+async-trait = { version = "0.1" }
+futures = { version = "0.3" }
+dashmap = { version = "5" }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+tokio-util = { version = "0.7" }
+bytes = { version = "1" }
+config = { version = "0.14" }
+toml = { version = "0.8" }
+clap = { version = "4", features = ["derive", "env"] }
+wasmtime = { version = "22" }
+libsql = { version = "0.4" }
+sled = { version = "0.34" }
+opentelemetry = { version = "0.23" }
+opentelemetry-otlp = { version = "0.16" }
+ratatui = { version = "0.27" }
+tower = { version = "0.4" }
+axum = { version = "0.7" }
+jsonschema = { version = "0.17" }
+tiktoken-rs = { version = "0.5" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.dev]
+opt-level = 1

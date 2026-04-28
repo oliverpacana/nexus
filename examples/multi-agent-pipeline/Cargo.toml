@@ -1,0 +1,35 @@
+# examples/multi-agent-pipeline/Cargo.toml
+[package]
+name = "nexus-example-multi-agent-pipeline"
+version = "0.1.0"
+edition = "2021"
+description = "Multi-agent content production pipeline using Nexus runtime"
+publish = false
+
+[[bin]]
+name = "multi-agent-pipeline"
+path = "src/main.rs"
+
+[dependencies]
+# Local Nexus crates
+nexus-proto = { path = "../../crates/nexus-proto" }
+nexus-kernel = { path = "../../crates/nexus-kernel" }
+nexus-mem = { path = "../../crates/nexus-mem" }
+nexus-tools = { path = "../../crates/nexus-tools" }
+nexus-router = { path = "../../crates/nexus-router" }
+nexus-flow = { path = "../../crates/nexus-flow" }
+nexus-obs = { path = "../../crates/nexus-obs" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+
+# Specific dependencies
+colored = "2"
+indicatif = "0.17"
+chrono = { workspace = true }
+uuid = { workspace = true }
+futures = { workspace = true }

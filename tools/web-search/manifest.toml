@@ -1,0 +1,42 @@
+# tools/web-search/manifest.toml
+[tool]
+name = "web-search"
+version = "1.0.0"
+description = "Search the web using DuckDuckGo Instant Answer API"
+author = "Nexus Team"
+license = "MIT"
+
+[[capabilities_required]]
+type = "network"
+allowed_hosts = ["api.duckduckgo.com"]
+
+[resource_limits]
+max_memory_mb = 32
+max_fuel = 5000000
+timeout_ms = 8000
+max_output_bytes = 262144
+
+[input_schema]
+type = "object"
+required = ["query"]
+[input_schema.properties.query]
+type = "string"
+description = "The search query string"
+[input_schema.properties.max_results]
+type = "integer"
+minimum = 1
+maximum = 30
+default = 10
+
+[output_schema]
+type = "object"
+[output_schema.properties.results]
+type = "array"
+[output_schema.properties.results.items]
+type = "object"
+[output_schema.properties.results.items.properties.title]
+type = "string"
+[output_schema.properties.results.items.properties.url]
+type = "string"
+[output_schema.properties.results.items.properties.snippet]
+type = "string"

@@ -1,0 +1,33 @@
+# examples/research-agent/Cargo.toml
+[package]
+name = "nexus-example-research-agent"
+version = "0.1.0"
+edition = "2021"
+description = "Complete example: AI research agent using Nexus runtime"
+publish = false
+
+[[bin]]
+name = "research-agent"
+path = "src/main.rs"
+
+[dependencies]
+# Local Nexus crates
+nexus-proto = { path = "../../crates/nexus-proto" }
+nexus-kernel = { path = "../../crates/nexus-kernel" }
+nexus-mem = { path = "../../crates/nexus-mem" }
+nexus-tools = { path = "../../crates/nexus-tools" }
+nexus-router = { path = "../../crates/nexus-router" }
+nexus-obs = { path = "../../crates/nexus-obs" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+
+# Specific CLI dependencies
+colored = "2"
+indicatif = "0.17"
+chrono = { workspace = true }
+uuid = { workspace = true }

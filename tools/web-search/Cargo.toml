@@ -1,0 +1,19 @@
+# tools/web-search/Cargo.toml
+[package]
+name = "web-search"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# No dependencies - we implement minimal JSON parsing inline
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Enable link-time optimization
+codegen-units = 1   # Better optimizations
+panic = "abort"     # Abort on panic to reduce binary size
+strip = true        # Strip symbols from binary

@@ -1,0 +1,47 @@
+[package]
+name = "nexus-obs"
+version = "0.1.0"
+edition = "2021"
+description = "Observability, tracing, metrics, and TUI dashboard for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "observability", "tracing", "tui"]
+categories = ["development-tools::debugging", "asynchronous"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+nexus-kernel = { path = "../nexus-kernel" }
+nexus-mem = { path = "../nexus-mem" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+dashmap = { workspace = true }
+bytes = { workspace = true }
+
+# OpenTelemetry integration
+opentelemetry = { version = "0.23", features = ["trace", "metrics"] }
+opentelemetry_sdk = { version = "0.23", features = ["rt-tokio", "trace", "metrics"] }
+opentelemetry-otlp = { version = "0.16", features = ["http-proto", "reqwest-client"] }
+opentelemetry-semantic-conventions = "0.15"
+
+# TUI Dashboard
+ratatui = "0.27"
+crossterm = { version = "0.27", features = ["event-stream"] }
+
+# Persistent observability storage
+libsql = "0.4"

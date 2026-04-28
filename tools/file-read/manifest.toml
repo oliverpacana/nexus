@@ -1,0 +1,80 @@
+# tools/file-read/manifest.toml
+[tool]
+name = "file-read"
+version = "1.0.0"
+description = "Read and parse files: text, JSON, CSV, TOML, YAML, binary"
+author = "Nexus Team"
+license = "MIT"
+
+[[capabilities_required]]
+type = "filesystem_read"
+paths = []  # Paths are filled in at capability grant time by the kernel
+
+[resource_limits]
+max_memory_mb = 32
+max_fuel = 30000000
+timeout_ms = 10000
+max_output_bytes = 2097152
+
+[input_schema]
+type = "object"
+required = ["path"]
+[input_schema.properties.path]
+type = "string"
+description = "Path to the file to read (absolute or relative)"
+[input_schema.properties.format]
+type = "string"
+enum = ["text", "json", "csv", "toml", "yaml", "binary"]
+description = "File format (auto-detected if not specified)"
+[input_schema.properties.encoding]
+type = "string"
+enum = ["utf8", "latin1"]
+default = "utf8"
+[input_schema.properties.max_bytes]
+type = "integer"
+default = 1048576
+minimum = 1024
+maximum = 1048576
+[input_schema.properties.start_line]
+type = "integer"
+minimum = 1
+description = "1-indexed start line for text files"
+[input_schema.properties.end_line]
+type = "integer"
+minimum = 1
+description = "1-indexed end line for text files"
+[input_schema.properties.csv_delimiter]
+type = "string"
+default = ","
+maxLength = 1
+[input_schema.properties.csv_has_header]
+type = "boolean"
+default = true
+[input_schema.properties.json_path]
+type = "string"
+description = "JSONPath-like selector for JSON files"
+[input_schema.properties.pattern]
+type = "string"
+description = "Only return lines matching this substring (text files)"
+[input_schema.properties.include_metadata]
+type = "boolean"
+default = false
+
+[output_schema]
+type = "object"
+[output_schema.properties.path]
+type = "string"
+[output_schema.properties.format]
+type = "string"
+[output_schema.properties.content]
+type = ["string", "object", "array"]
+[output_schema.properties.line_count]
+type = ["integer", "null"]
+[output_schema.properties.byte_size]
+type = "integer"
+[output_schema.properties.truncated]
+type = "boolean"
+[output_schema.properties.metadata]
+type = ["object", "null"]
+[output_schema.properties.error]
+type = ["string", "null"]

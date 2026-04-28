@@ -1,0 +1,41 @@
+[package]
+name = "nexus-mesh"
+version = "0.1.0"
+edition = "2021"
+description = "Distributed P2P agent mesh networking for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "p2p", "libp2p", "mesh"]
+categories = ["network-programming", "asynchronous"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+bytes = { workspace = true }
+dashmap = { workspace = true }
+
+# P2P networking stack
+libp2p = { version = "0.54", features = [
+    "tcp", "noise", "yamux", "mdns",
+    "gossipsub", "kad", "request-response",
+    "identify", "macros"
+]}
+
+# Async utilities
+futures-timer = "3"
+rand = "0.8"

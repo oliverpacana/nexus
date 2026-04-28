@@ -1,0 +1,18 @@
+# tools/http-fetch/Cargo.toml
+[package]
+name = "nexus-tool-http-fetch"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+name = "http_fetch"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+
+[dependencies]
+# No external dependencies - pure Rust implementation for WASM

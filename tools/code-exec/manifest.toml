@@ -1,0 +1,56 @@
+# tools/code-exec/manifest.toml
+[tool]
+name = "code-exec"
+version = "1.0.0"
+description = "Execute code snippets in a sandboxed interpreter (Python/JS/Shell/Lua)"
+author = "Nexus Team"
+license = "MIT"
+
+# No network or filesystem capabilities needed - fully sandboxed
+[resource_limits]
+max_memory_mb = 32
+max_fuel = 50000000
+timeout_ms = 10000
+max_output_bytes = 65536
+
+[input_schema]
+type = "object"
+required = ["code", "language"]
+[input_schema.properties.code]
+type = "string"
+description = "The code snippet to execute"
+[input_schema.properties.language]
+type = "string"
+enum = ["python", "javascript", "shell", "lua"]
+description = "Programming language of the code"
+[input_schema.properties.stdin]
+type = "string"
+description = "Simulated stdin input"
+[input_schema.properties.timeout_ms]
+type = "integer"
+default = 2000
+minimum = 100
+maximum = 30000
+[input_schema.properties.max_output_bytes]
+type = "integer"
+default = 16384
+minimum = 1024
+maximum = 131072
+[input_schema.properties.env]
+type = "object"
+description = "Simulated environment variables"
+
+[output_schema]
+type = "object"
+[output_schema.properties.stdout]
+type = "string"
+[output_schema.properties.stderr]
+type = "string"
+[output_schema.properties.exit_code]
+type = "integer"
+[output_schema.properties.execution_time_ms]
+type = "integer"
+[output_schema.properties.variables]
+type = "object"
+[output_schema.properties.error]
+type = ["string", "null"]

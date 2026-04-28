@@ -1,0 +1,37 @@
+[package]
+name = "nexus-kernel"
+version = "0.1.0"
+edition = "2021"
+description = "Agent process manager and supervision core for the Nexus AI agent runtime"
+license = "MIT"
+repository = "https://github.com/nexus-ai/nexus"
+keywords = ["ai", "agent", "kernel", "runtime", "supervision"]
+categories = ["asynchronous", "concurrency"]
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+# Local crates
+nexus-proto = { path = "../nexus-proto" }
+
+# Async runtime and primitives (workspace)
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization and types (workspace)
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling (workspace)
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Instrumentation and concurrency (workspace)
+tracing = { workspace = true }
+dashmap = { workspace = true }
