@@ -102,7 +102,6 @@ impl MemoryKey {
             key: key.into(),
         }
     }
-}
 
 impl fmt::Display for MemoryKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
