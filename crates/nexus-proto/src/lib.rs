@@ -37,12 +37,19 @@
 // Module Declarations
 // =============================================================================
 
+/// Unified error types and result aliases for the Nexus runtime.
 pub mod error;
+/// Agent identity, lifecycle status, and security capability definitions.
 pub mod agent;
+/// Large Language Model request/response types and provider abstractions.
 pub mod model;
+/// WASM-based tool plugin manifests, resource limits, and invocation types.
 pub mod tool;
+/// Four-tier memory hierarchy (L1-L4), keys, entries, and vector search types.
 pub mod memory;
+/// Inter-agent messaging protocol, envelope, and async channel abstractions.
 pub mod message;
+/// Directed Acyclic Graph (DAG) workflow engine definitions and runtime context.
 pub mod workflow;
 
 // =============================================================================
@@ -96,7 +103,8 @@ pub use workflow::{
 ///
 /// fn handle_agent(id: AgentId, request: ModelRequest) -> Result<ToolResult> {
 ///     // ...
-/// }/// ```
+/// }
+/// ```
 pub mod prelude {
     pub use crate::error::{NexusError, Result};
     pub use crate::agent::{

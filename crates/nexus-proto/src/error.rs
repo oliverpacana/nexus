@@ -97,6 +97,10 @@ pub enum NexusError {
     #[error("internal error: {0}")]
     Internal(String),
 }
+
+/// A specialized Result type for Nexus operations.
+pub type Result<T> = std::result::Result<T, NexusError>;
+
 impl From<anyhow::Error> for NexusError {
     fn from(err: anyhow::Error) -> Self {
         NexusError::Internal(err.to_string())

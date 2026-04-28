@@ -14,11 +14,17 @@ use crate::error::NexusError;
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(tag = "provider", rename_all = "snake_case")]
 pub enum ProviderId {
+    /// OpenAI API provider.
     OpenAI,
+    /// Anthropic API provider.
     Anthropic,
+    /// Groq API provider (specialized for low latency).
     Groq,
+    /// Mistral AI API provider.
     Mistral,
+    /// Local model execution (e.g., via Ollama or llama.cpp).
     Local,
+    /// A custom model provider with a specific name.
     Custom(String),
 }
 
@@ -38,7 +44,9 @@ impl fmt::Display for ProviderId {
 /// Unique identifier for a specific model on a specific provider.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ModelId {
+    /// The provider that hosts this model.
     pub provider: ProviderId,
+    /// The specific model name or version string.
     pub model: String,
 }
 
@@ -47,7 +55,8 @@ impl ModelId {
     pub fn new(provider: ProviderId, model: impl Into<String>) -> Self {
         Self {
             provider,
-            model: model.into(),        }
+            model: model.into(),
+        }
     }
 
     /// Convenience constructor for OpenAI models.
@@ -109,9 +118,13 @@ impl FromStr for ModelId {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageRole {
+    /// System instructions or context preamble.
     System,
+    /// User input or command.
     User,
+    /// Model response or reasoning.
     Assistant,
+    /// Output from a tool call.
     Tool,
 }
 
@@ -123,14 +136,20 @@ pub enum ContentBlock {
     Text(String),
     /// A function/tool call requested by the model.
     ToolCall {
+        /// Unique ID for the tool call instance.
         id: String,
+        /// Name of the tool to be called.
         name: String,
+        /// JSON arguments for the tool.
         arguments: serde_json::Value,
     },
     /// The result of executing a tool call.
     ToolResult {
+        /// ID of the tool call this result corresponds to.
         tool_call_id: String,
+        /// Serialized output or result message.
         content: String,
+        /// Whether the execution failed.
         is_error: bool,
     },
 }
@@ -138,14 +157,17 @@ pub enum ContentBlock {
 /// A single message in a conversation context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
+    /// Role of the message sender.
     pub role: MessageRole,
+    /// Content blocks making up the message.
     pub content: Vec<ContentBlock>,
 }
 
 impl Message {
     /// Creates a user message containing plain text.
     pub fn user(text: impl Into<String>) -> Self {
-        Self {            role: MessageRole::User,
+        Self {
+            role: MessageRole::User,
             content: vec![ContentBlock::Text(text.into())],
         }
     }
@@ -186,15 +208,19 @@ impl Message {
 /// Specification of a tool/function available to the model during inference.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolSpec {
+    /// Unique name of the tool.
     pub name: String,
+    /// Description of what the tool does and when to use it.
     pub description: String,
+    /// JSON Schema defining the expected arguments.
     pub parameters: serde_json::Value,
 }
 
 impl ToolSpec {
     /// Constructs a tool specification from its JSON Schema definition.
     pub fn new(name: impl Into<String>, description: impl Into<String>, parameters: serde_json::Value) -> Self {
-        Self {            name: name.into(),
+        Self {
+            name: name.into(),
             description: description.into(),
             parameters,
         }
@@ -206,16 +232,27 @@ impl ToolSpec {
 #[serde(tag = "policy", rename_all = "snake_case")]
 pub enum RoutingPolicy {
     /// Prefer cheapest models that can respond within the latency budget.
-    CostOptimized { max_latency_ms: u64 },
+    CostOptimized {
+        /// Maximum allowed latency in milliseconds.
+        max_latency_ms: u64,
+    },
     /// Prefer fastest models that stay under the cost ceiling per 1K tokens.
-    LatencyOptimized { max_cost_per_1k_tokens: f64 },
+    LatencyOptimized {
+        /// Maximum allowed cost per 1,000 tokens in USD.
+        max_cost_per_1k_tokens: f64,
+    },
     /// Route based on strict capability requirements (context size, vision, etc.).
     CapabilityFirst {
+        /// Minimum context window size required.
         required_context_tokens: Option<u32>,
+        /// Whether the model must support image input.
         requires_vision: bool,
     },
     /// Attempt local inference first; fallback to cloud on failure or OOM.
-    LocalFirst { cloud_fallback: bool },
+    LocalFirst {
+        /// Whether to fallback to cloud if local execution fails.
+        cloud_fallback: bool,
+    },
     /// Force routing to a specific model/provider.
     Pinned(ModelId),
 }
@@ -234,36 +271,54 @@ impl Default for RoutingPolicy {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum FinishReason {
+    /// Natural completion or model reached stop sequence.
     Stop,
+    /// Generation reached the maximum token limit.
     MaxTokens,
+    /// Model requested a tool/function call.
     ToolCall,
+    /// Generation was omitted due to content filtering.
     ContentFilter,
+    /// Generation failed due to a provider or system error.
     Error(String),
 }
 
 /// A single token yielded from a streaming model response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Token {    pub text: String,
+pub struct Token {
+    /// The text or byte representation of the token.
+    pub text: String,
+    /// Whether this is the last token in the stream.
     pub is_final: bool,
+    /// The termination reason, only present if `is_final` is true.
     pub finish_reason: Option<FinishReason>,
 }
 
 /// Token usage accounting for a completed generation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelUsage {
+    /// Number of tokens in the prompt.
     pub prompt_tokens: u32,
+    /// Number of tokens generated by the model.
     pub completion_tokens: u32,
+    /// Total tokens processed in the request.
     pub total_tokens: u32,
+    /// Estimated cost of the request in USD.
     pub estimated_cost_usd: f64,
 }
 
 /// A complete, non-streaming response from a model provider.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelResponse {
+    /// Unique identifier for the response.
     pub id: Uuid,
+    /// The model that generated the response.
     pub model: ModelId,
+    /// The generated message content.
     pub message: Message,
+    /// Token usage stats.
     pub usage: ModelUsage,
+    /// Total time taken in milliseconds.
     pub latency_ms: u64,
 }
 
@@ -274,15 +329,25 @@ pub struct ModelResponse {
 /// A complete request payload to be routed and executed against a model provider.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelRequest {
+    /// Unique identifier for the request.
     pub id: Uuid,
+    /// Specific model to use (if Pinned policy used).
     pub model: Option<ModelId>,
+    /// History of messages in the conversation.
     pub messages: Vec<Message>,
+    /// Override system instructions.
     pub system_prompt: Option<String>,
+    /// Maximum tokens to generate.
     pub max_tokens: Option<u32>,
+    /// Sampling temperature (0.0 to 2.0).
     pub temperature: Option<f32>,
+    /// Nucleus sampling threshold (0.0 to 1.0).
     pub top_p: Option<f32>,
+    /// List of available tools for function calling.
     pub tools: Vec<ToolSpec>,
+    /// Strategy for model selection and routing.
     pub routing_policy: RoutingPolicy,
+    /// Arbitrary metadata for tracing and correlation.
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
@@ -292,7 +357,8 @@ pub struct ModelRequestBuilder {
     messages: Vec<Message>,
     system_prompt: Option<String>,
     max_tokens: Option<u32>,
-    temperature: Option<f32>,    top_p: Option<f32>,
+    temperature: Option<f32>,
+    top_p: Option<f32>,
     tools: Vec<ToolSpec>,
     routing_policy: RoutingPolicy,
     metadata: HashMap<String, serde_json::Value>,
@@ -341,7 +407,8 @@ impl ModelRequestBuilder {
     }
 
     /// Sets the maximum number of tokens to generate.
-    pub fn max_tokens(mut self, max: u32) -> Self {        self.max_tokens = Some(max);
+    pub fn max_tokens(mut self, max: u32) -> Self {
+        self.max_tokens = Some(max);
         self
     }
 

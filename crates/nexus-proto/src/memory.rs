@@ -47,7 +47,8 @@ impl MemoryTier {
     }
 }
 
-/// Access scope controlling which agents can read/write a memory entry.#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+/// Access scope controlling which agents can read/write a memory entry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum MemoryScope {
     /// Only the owning agent can access this entry.
@@ -75,7 +76,9 @@ impl fmt::Display for MemoryScope {
 /// Structured key for addressing memory entries: `namespace::key`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct MemoryKey {
+    /// The namespace the key belongs to (e.g., "agent:uuid", "global").
     pub namespace: String,
+    /// The specific key identifier within the namespace.
     pub key: String,
 }
 
@@ -96,12 +99,14 @@ impl MemoryKey {
         }
     }
 
-    /// Constructs a globally-scoped key.    pub fn global_key(key: impl Into<String>) -> Self {
+    /// Constructs a globally-scoped key.
+    pub fn global_key(key: impl Into<String>) -> Self {
         Self {
             namespace: "global".to_string(),
             key: key.into(),
         }
     }
+}
 
 impl fmt::Display for MemoryKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -193,7 +198,8 @@ impl AsRef<[f32]> for EmbeddingVector {
 // =============================================================================
 
 /// A generic entry in the Nexus memory hierarchy.
-/// Fields are populated based on tier: L3 uses `embedding`, L2 uses `event_type`, etc.#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Fields are populated based on tier: L3 uses `embedding`, L2 uses `event_type`, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryEntry {
     /// Structured address for this entry.
     pub key: MemoryKey,
@@ -242,7 +248,8 @@ impl MemoryEntry {
 // Semantic Search (L3)
 // =============================================================================
 
-/// Query parameters for vector similarity search in semantic memory.#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Query parameters for vector similarity search in semantic memory.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticSearchQuery {
     /// The query embedding to compare against indexed vectors.
     pub query_embedding: EmbeddingVector,
@@ -287,14 +294,25 @@ pub struct SemanticSearchResult {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EpisodicEventType {
+    /// Agent execution cycle started.
     AgentStarted,
+    /// Agent execution cycle finished.
     AgentFinished,
+    /// Model-requested tool invocation.
     ToolCalled,
+    /// Result returned from a tool execution.
     ToolResult,
-    ModelRequest,    ModelResponse,
+    /// Request payload sent to an LLM.
+    ModelRequest,
+    /// Response received from an LLM.
+    ModelResponse,
+    /// New data written to the memory hierarchy.
     MemoryWrite,
+    /// Data retrieved from the memory hierarchy.
     MemoryRead,
+    /// Workflow step execution transition.
     WorkflowStep,
+    /// A custom, user-defined event type.
     CustomEvent(String),
 }
 
@@ -340,5 +358,6 @@ impl EpisodicEvent {
             timestamp: Utc::now(),
             session_id,
             sequence,
-        }    }
+        }
+    }
 }

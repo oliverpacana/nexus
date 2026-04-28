@@ -6,6 +6,7 @@ use tokio::sync::mpsc;
 use tokio::time::timeout;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use std::marker::PhantomData;
 
 use crate::agent::{AgentId, AgentPriority, AgentStatus};
 use crate::error::NexusError;
@@ -47,7 +48,8 @@ impl fmt::Display for MessageId {
 impl Default for MessageId {
     fn default() -> Self {
         Self::new()
-    }}
+    }
+}
 
 // =============================================================================
 // Control Signals
@@ -62,7 +64,10 @@ pub enum ControlKind {
     /// Resume a previously suspended agent.
     Resume,
     /// Terminate agent immediately with optional reason.
-    Kill { reason: String },
+    Kill {
+        /// Reason for termination.
+        reason: String,
+    },
     /// Dynamically adjust agent scheduling priority.
     SetPriority(AgentPriority),
 }
@@ -77,38 +82,53 @@ pub enum ControlKind {
 pub enum MessageKind {
     /// Assign a workflow step to an agent for execution.
     TaskAssignment {
+        /// ID of the workflow the task belongs to.
         workflow_id: Uuid,
+        /// ID of the specific step within the workflow.
         step_id: String,
     },
 
     /// Report completion of an assigned workflow step.
     TaskResult {
+        /// ID of the workflow.
         workflow_id: Uuid,
+        /// ID of the step.
         step_id: String,
+        /// Whether the step was executed successfully.
         success: bool,
     },
 
     /// Request delegation of work to another agent with specific capability.
     DelegateRequest {
+        /// Capability required to handle the request.
         capability: String,
+        /// Payload data for the request.
         payload: serde_json::Value,
     },
 
     /// Response to a delegation request.
     DelegateResponse {
-        request_id: MessageId,        result: serde_json::Value,
+        /// ID of the original request.
+        request_id: MessageId,
+        /// Result data from the delegation.
+        result: serde_json::Value,
+        /// Optional error message if the delegation failed.
         error: Option<String>,
     },
 
     /// Broadcast a memory update to subscribed agents.
     MemoryBroadcast {
+        /// Memory key that was updated.
         key: MemoryKey,
+        /// New value for the memory key.
         value: serde_json::Value,
     },
 
     /// Periodic liveness signal with current agent status.
     Heartbeat {
+        /// ID of the agent sending the heartbeat.
         agent_id: AgentId,
+        /// Current status of the agent.
         status: AgentStatus,
     },
 
@@ -117,7 +137,9 @@ pub enum MessageKind {
 
     /// Escape hatch for custom message types not covered by variants.
     Custom {
+        /// Machine-readable name for the custom message type.
         kind_name: String,
+        /// Payload data for the custom message.
         payload: serde_json::Value,
     },
 }
@@ -145,7 +167,8 @@ pub struct Envelope {
     /// Distributed trace ID for observability correlation across subsystems.
     pub trace_id: Uuid,
 
-    /// Timestamp when the message was sent.    pub sent_at: DateTime<Utc>,
+    /// Timestamp when the message was sent.
+    pub sent_at: DateTime<Utc>,
 
     /// Optional time-to-live in milliseconds; message should be discarded after expiry.
     pub ttl_ms: Option<u64>,
@@ -243,7 +266,8 @@ impl<T> ChannelTx<T> {
     /// Attempts to send a message without awaiting; returns error if channel is full or closed.
     pub fn try_send(&self, msg: T) -> Result<(), NexusError> {
         self.inner
-            .try_send(msg)            .map_err(|e| match e {
+            .try_send(msg)
+            .map_err(|e| match e {
                 mpsc::error::TrySendError::Full(_) => {
                     NexusError::Timeout {
                         operation: "channel send".into(),
@@ -286,12 +310,15 @@ impl<T> ChannelRx<T> {
 }
 
 /// Typed async channel abstraction built on `tokio::sync::mpsc`.
-pub struct Channel<T>;
+pub struct Channel<T> {
+    _phantom: PhantomData<T>,
+}
 
 impl<T: Send + 'static> Channel<T> {
     /// Creates a bounded channel with the given capacity.
     /// Returns transmitter and receiver halves.
     pub fn bounded(capacity: usize) -> (ChannelTx<T>, ChannelRx<T>) {
-        let (tx, rx) = mpsc::channel(capacity);        (ChannelTx { inner: tx }, ChannelRx { inner: rx })
+        let (tx, rx) = mpsc::channel(capacity);
+        (ChannelTx { inner: tx }, ChannelRx { inner: rx })
     }
 }

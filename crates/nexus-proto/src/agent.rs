@@ -38,8 +38,11 @@ impl fmt::Display for AgentId {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MemoryAccess {
+    /// Read-only access to memory.
     Read,
+    /// Write-only access to memory.
     Write,
+    /// Both read and write access to memory.
     ReadWrite,
 }
 
@@ -47,7 +50,8 @@ impl fmt::Display for MemoryAccess {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             MemoryAccess::Read => write!(f, "read"),
-            MemoryAccess::Write => write!(f, "write"),            MemoryAccess::ReadWrite => write!(f, "read_write"),
+            MemoryAccess::Write => write!(f, "write"),
+            MemoryAccess::ReadWrite => write!(f, "read_write"),
         }
     }
 }
@@ -56,11 +60,17 @@ impl fmt::Display for MemoryAccess {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentKind {
+    /// Agent specialized in gathering and synthesizing information.
     Research,
+    /// Agent specialized in generating text or code.
     Writing,
+    /// Agent specialized in reviewing and auditing code.
     CodeReview,
+    /// Agent specialized in data analysis and reasoning.
     Analysis,
+    /// Agent specialized in breaking down tasks and orchestrating workflows.
     Planning,
+    /// A custom agent type with a specific name.
     Custom(String),
 }
 
@@ -81,10 +91,15 @@ impl fmt::Display for AgentKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentPriority {
+    /// Highest priority; urgent tasks requiring immediate attention.
     Critical = 5,
+    /// High priority; important tasks that should be prioritized.
     High = 4,
+    /// Default priority for most tasks.
     Normal = 3,
+    /// Low priority; non-urgent tasks that can wait.
     Low = 2,
+    /// Lowest priority; background tasks performed when idle.
     Background = 1,
 }
 
@@ -96,7 +111,8 @@ impl Default for AgentPriority {
 
 impl AgentPriority {
     /// Returns the numeric weight used by the scheduler for proportional resource allocation.
-    pub fn weight(&self) -> u32 {        match self {
+    pub fn weight(&self) -> u32 {
+        match self {
             AgentPriority::Critical => 5,
             AgentPriority::High => 4,
             AgentPriority::Normal => 3,
@@ -110,26 +126,42 @@ impl AgentPriority {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentStatus {
+    /// Agent is created but not yet scheduled.
     Pending {
+        /// Timestamp when the agent was created.
         created_at: DateTime<Utc>,
     },
+    /// Agent is currently executing a task.
     Running {
+        /// Timestamp when execution began.
         started_at: DateTime<Utc>,
+        /// Optional ID of the task currently being executed.
         task_id: Option<String>,
     },
+    /// Agent execution is paused.
     Suspended {
+        /// Reason for suspension.
         reason: String,
+        /// Timestamp when suspension occurred.
         suspended_at: DateTime<Utc>,
     },
+    /// Agent completed its task successfully.
     Completed {
+        /// Timestamp when the agent finished.
         finished_at: DateTime<Utc>,
+        /// Whether the agent considers its execution successful.
         success: bool,
     },
+    /// Agent encountered an error and stopped.
     Failed {
+        /// Error message describing the failure.
         error: String,
+        /// Timestamp when the failure occurred.
         failed_at: DateTime<Utc>,
+        /// Number of times the agent has retried its current task.
         retries: u32,
     },
+    /// Agent is in the process of being shut down.
     Terminating,
 }
 
@@ -145,7 +177,8 @@ impl AgentStatus {
     }
 
     /// Returns the timestamp when the agent transitioned to the `Running` state, if applicable.
-    pub fn started_at(&self) -> Option<DateTime<Utc>> {        match self {
+    pub fn started_at(&self) -> Option<DateTime<Utc>> {
+        match self {
             AgentStatus::Running { started_at, .. } => Some(*started_at),
             _ => None,
         }

@@ -19,14 +19,17 @@ use crate::error::NexusError;
 pub struct WorkflowId(Uuid);
 
 impl WorkflowId {
+    /// Generates a new random v4 UUID for a workflow.
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
 
+    /// Returns a nil UUID (all zeros), useful for testing or sentinel values.
     pub fn nil() -> Self {
         Self(Uuid::nil())
     }
 
+    /// Returns a reference to the underlying `Uuid`.
     pub fn as_uuid(&self) -> &Uuid {
         &self.0
     }
@@ -48,11 +51,14 @@ impl Default for WorkflowId {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct StepId(String);
+
 impl StepId {
+    /// Constructs a `StepId` from a name string.
     pub fn new(name: impl Into<String>) -> Self {
         Self(name.into())
     }
 
+    /// Returns the underlying string representation.
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -86,46 +92,65 @@ impl From<String> for StepId {
 pub enum StepKind {
     /// Spawn an agent with a prompt template and collect output.
     Agent {
+        /// Type of agent to spawn.
         agent_kind: AgentKind,
+        /// Handlebars-style prompt template.
         prompt_template: String,
+        /// Required capabilities for the spawned agent.
         capabilities: AgentCapabilities,
+        /// Key in the workflow context to store the result.
         output_key: String,
     },
 
     /// Execute a WASM tool with templated arguments.
     Tool {
+        /// Name of the tool to execute.
         tool_name: String,
+        /// JSON template for tool arguments.
         arguments_template: Value,
-        output_key: String,    },
+        /// Key in the workflow context to store the result.
+        output_key: String,
+    },
 
     /// Route execution based on LLM-evaluated condition.
     Conditional {
+        /// Prompt describing the condition to evaluate.
         condition_prompt: String,
+        /// JSON Schema for the expected condition output.
         output_schema: Value,
+        /// Map of branch values to the next step IDs.
         branches: HashMap<String, StepId>,
+        /// Optional default step to execute if no branch matches.
         default_branch: Option<StepId>,
     },
 
     /// Execute multiple steps concurrently and join results.
     Parallel {
+        /// List of step IDs to execute in parallel.
         steps: Vec<StepId>,
+        /// Key in the workflow context to store the combined results.
         join_output_key: String,
     },
 
     /// Apply a deterministic transform to context data.
     Transform {
+        /// Key in the context to read input from.
         input_key: String,
+        /// The transformation logic to apply.
         transform: TransformKind,
+        /// Key in the context to store the output.
         output_key: String,
     },
 
     /// Pause execution for a fixed duration.
     Wait {
+        /// Delay duration in milliseconds.
         duration_ms: u64,
     },
 
     /// Terminal step marking workflow completion.
     End {
+        /// Whether the workflow finished successfully.
         success: bool,
     },
 }
@@ -135,13 +160,19 @@ pub enum StepKind {
 #[serde(tag = "transform", rename_all = "snake_case")]
 pub enum TransformKind {
     /// Extract a value from JSON using JSONPath-like syntax.
-    JsonExtract { path: String },
+    JsonExtract {
+        /// The path to extract.
+        path: String,
+    },
 
     /// Summarize text content (requires model routing).
     TextSummarize,
 
     /// Join an array of strings with a separator.
-    TextJoin { separator: String },
+    TextJoin {
+        /// The separator to use when joining.
+        separator: String,
+    },
 
     /// Parse a JSON string into a structured Value.
     ParseJson,
@@ -149,7 +180,10 @@ pub enum TransformKind {
     SerializeJson,
 
     /// Custom transformation logic (code evaluated in sandbox).
-    Custom { code: String },
+    Custom {
+        /// The transformation code to execute.
+        code: String,
+    },
 }
 
 // =============================================================================
@@ -194,7 +228,8 @@ impl RetryPolicy {
 
     /// Returns a policy with the specified maximum attempt count.
     pub fn with_attempts(n: u32) -> Self {
-        Self {            max_attempts: n,
+        Self {
+            max_attempts: n,
             ..Default::default()
         }
     }
@@ -202,7 +237,7 @@ impl RetryPolicy {
     /// Computes the backoff duration for a given attempt number (0-indexed).
     pub fn backoff_for_attempt(&self, attempt: u32) -> Duration {
         let multiplier = self.backoff_multiplier.powi(attempt as i32);
-        let backoff = (self.backoff_ms as f64 * multiplier) as u64;
+        let backoff = (self.backoff_ms as f64 * multiplier as f64) as u64;
         Duration::from_millis(backoff.min(self.max_backoff_ms))
     }
 }
@@ -292,7 +327,8 @@ impl WorkflowDefinition {
                         step_id, next_id
                     )));
                 }
-            }        }
+            }
+        }
 
         // Check 3: Detect cycles using DFS with recursion stack
         let mut visited = HashSet::new();
@@ -341,7 +377,8 @@ impl WorkflowDefinition {
 
             let step = match steps.get(step_id) {
                 Some(s) => s,
-                None => return false,            };
+                None => return false,
+            };
 
             // Terminal check: End step or no outgoing edges
             if matches!(step.kind, StepKind::End { .. }) || step.next.is_empty() {
@@ -390,7 +427,8 @@ impl WorkflowContext {
         self.values.get(key)
     }
 
-    /// Sets or overwrites a value in the context.    pub fn set(&mut self, key: &str, value: Value) {
+    /// Sets or overwrites a value in the context.
+    pub fn set(&mut self, key: &str, value: Value) {
         self.values.insert(key.to_string(), value);
     }
 
@@ -439,7 +477,8 @@ impl WorkflowContext {
 
         if in_placeholder {
             return Err(NexusError::FlowError(
-                "unclosed template placeholder '{{'".into(),            ));
+                "unclosed template placeholder '{{'".into(),
+            ));
         }
 
         Ok(result)
@@ -459,23 +498,29 @@ pub enum StepStatus {
 
     /// Step is currently executing.
     Running {
+        /// Timestamp when the step execution began.
         started_at: DateTime<Utc>,
     },
 
     /// Step completed successfully with output.
     Completed {
+        /// Timestamp when the step execution finished.
         finished_at: DateTime<Utc>,
+        /// The output data produced by the step.
         output: Value,
     },
 
     /// Step failed after exhausting retries.
     Failed {
+        /// Error message describing the failure.
         error: String,
+        /// Total number of attempts made to execute the step.
         attempts: u32,
     },
 
     /// Step was skipped due to conditional branching.
     Skipped {
+        /// Reason why the step was skipped.
         reason: String,
     },
 }
@@ -489,14 +534,20 @@ impl StepStatus {
         )
     }
 }
+
 /// Overall status of a workflow run instance.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WorkflowRunStatus {
+    /// Workflow has been created but not yet started.
     Pending,
+    /// Workflow is currently executing.
     Running,
+    /// Workflow finished successfully.
     Completed,
+    /// Workflow failed during execution.
     Failed,
+    /// Workflow execution was cancelled by user.
     Cancelled,
 }
 
@@ -537,7 +588,8 @@ impl WorkflowRun {
                 .map(|id| (id.clone(), StepStatus::Pending))
                 .collect(),
             context: WorkflowContext {
-                values: workflow.variables.clone(),            },
+                values: workflow.variables.clone(),
+            },
             started_at: Utc::now(),
             finished_at: None,
             status: WorkflowRunStatus::Pending,

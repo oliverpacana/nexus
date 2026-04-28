@@ -47,7 +47,8 @@ impl fmt::Display for ToolId {
 
 impl From<&str> for ToolId {
     fn from(s: &str) -> Self {
-        Self(s.to_string())    }
+        Self(s.to_string())
+    }
 }
 
 impl From<String> for ToolId {
@@ -67,13 +68,22 @@ impl From<String> for ToolId {
 pub enum ToolCapabilityRequirement {
     /// Network access with optional host allowlist.
     /// Empty `allowed_hosts` vector means all hosts are permitted.
-    NetworkAccess { allowed_hosts: Vec<String> },
+    NetworkAccess {
+        /// List of hosts the tool is allowed to connect to.
+        allowed_hosts: Vec<String>,
+    },
 
     /// Read-only filesystem access to specified path prefixes.
-    FilesystemRead { paths: Vec<String> },
+    FilesystemRead {
+        /// List of filesystem paths the tool is allowed to read.
+        paths: Vec<String>,
+    },
 
     /// Read-write filesystem access to specified path prefixes.
-    FilesystemWrite { paths: Vec<String> },
+    FilesystemWrite {
+        /// List of filesystem paths the tool is allowed to write.
+        paths: Vec<String>,
+    },
 
     /// Access to non-deterministic random number generation.
     RandomAccess,
@@ -194,7 +204,8 @@ pub struct ToolResult {
     /// Matches the `ToolCall.id` that produced this result.
     pub call_id: Uuid,
 
-    /// Name of the tool that was executed.    pub tool_name: String,
+    /// Name of the tool that was executed.
+    pub tool_name: String,
 
     /// Output payload, validated against `output_schema` if `is_error` is false.
     pub output: serde_json::Value,
