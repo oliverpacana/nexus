@@ -61,6 +61,23 @@ pub enum KernelError {
     Internal(String),
 }
 
+impl From<NexusError> for KernelError {
+    fn from(err: NexusError) -> Self {
+        match err {
+            NexusError::AgentNotFound(id) => KernelError::AgentNotFound(id),
+            NexusError::CapabilityDenied { agent_id, capability } => {
+                KernelError::CapabilityDenied {
+                    agent_id: Uuid::parse_str(&agent_id).unwrap_or(Uuid::nil()),
+                    capability,
+                }
+            }
+            NexusError::ShuttingDown => KernelError::ShuttingDown,
+            NexusError::Internal(msg) => KernelError::Internal(msg),
+            _ => KernelError::Internal(err.to_string()),
+        }
+    }
+}
+
 impl From<KernelError> for NexusError {
     fn from(err: KernelError) -> Self {
         match err {

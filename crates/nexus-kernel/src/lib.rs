@@ -23,7 +23,7 @@
 //!
 //! async fn example() -> anyhow::Result<()> {
 //!     let config = KernelConfig::default();
-//!     let (kernel, mut msg_rx) = Kernel::new(config).await?;
+//!     let kernel = Kernel::new(config).await?;
 //!
 //!     let opts = SpawnOptions {
 //!         name: Some("researcher".into()),
@@ -33,6 +33,9 @@
 //!     };
 //!
 //!     let agent_id = kernel.spawn(MyAgent, opts).await?;
+//!
+//!     // Get the message receiver
+//!     let mut msg_rx = kernel.into_message_receiver();
 //!
 //!     // Process messages from agents
 //!     while let Some(msg) = msg_rx.recv().await {

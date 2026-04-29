@@ -390,7 +390,8 @@ impl PriorityScheduler {
                 // Successfully acquired slot
                 return Ok(SchedulerPermit::new(Arc::new(self.clone_shallow()), agent_id));
             }
-            // CAS failed, retry loop        }
+            // CAS failed, retry loop
+        }
 
         // Slow path: need to wait in priority queue
         let notify = Arc::new(Notify::new());
@@ -439,7 +440,8 @@ impl PriorityScheduler {
                     // of the wait queue entry when we remove it below
                 } => {
                     // This branch never actually executes; it's here for structure
-                    // Real cleanup: remove from queue on cancellation                }
+                    // Real cleanup: remove from queue on cancellation
+                }
             }
         }
     }

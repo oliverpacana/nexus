@@ -3,7 +3,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::Instant;
 
-use anyhow::Context;
+use chrono::{DateTime, Utc};
 use async_trait::async_trait;
 use serde_json::Value;
 use tokio::sync::{watch, Mutex, RwLock};
@@ -143,9 +143,21 @@ impl AgentContext {
 enum AgentProcessState {
     Pending,
     Running,
-    Suspended { reason: String },
-    Terminating { reason: String },
-    Completed { success: bool },    Failed { error: String },
+    Suspended {
+        reason: String,
+        suspended_at: DateTime<Utc>,
+    },
+    Terminating {
+        reason: String,
+    },
+    Completed {
+        success: bool,
+    },
+    Failed {
+        error: String,
+        failed_at: DateTime<Utc>,
+        retries: u32,
+    },
 }
 
 impl AgentProcessState {
@@ -341,14 +353,16 @@ impl AgentProcess {
 
         // Spawn the task with panic handling
         let handle = tokio::spawn(async move {
-            // Wrap execution to catch panics            let result = tokio::select! {
+            let mut shutdown_rx_signal = shutdown_rx.clone();
+            // Wrap execution to catch panics
+            let result = tokio::select! {
                 // Run the agent task
-                result = Self::run_agent_task(context, shutdown_rx) => result,
+                res = Self::run_agent_task(context, shutdown_rx) => res,
                 // If shutdown signal fires, exit gracefully
                 _ = async {
-                    let mut rx = shutdown_rx;
-                    rx.changed().await.ok();
-                    *rx.borrow()
+                    shutdown_rx_signal.changed().await.ok();
+                    let x = *shutdown_rx_signal.borrow();
+                    x
                 } => {
                     info!(agent_id = %agent_id, "agent received shutdown signal");
                     Ok(Value::Null)
@@ -635,7 +649,8 @@ impl AgentProcess {
             .map_err(|e| KernelError::ChannelClosed(e.to_string()).into())
     }
 
-    /// Returns the agent's unique identifier.    pub fn agent_id(&self) -> AgentId {
+    /// Returns the agent's unique identifier.
+    pub fn agent_id(&self) -> AgentId {
         self.context.agent_id
     }
 

@@ -170,7 +170,7 @@ pub async fn start(config: NexusCliConfig) -> Result<NexusRuntime> {
         default_token_refill_rate: config.scheduler.default_refill_rate,
         ..Default::default()
     };
-    let (kernel, _msg_rx) = nexus_kernel::Kernel::new(kernel_cfg)
+    let kernel = nexus_kernel::Kernel::new(kernel_cfg)
         .await
         .context("failed to initialize agent kernel")?;
     // Convert to KernelHandle for unified access

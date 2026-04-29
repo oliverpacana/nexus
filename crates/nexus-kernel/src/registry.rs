@@ -397,22 +397,6 @@ impl AgentRegistry {
 }
 
 // =============================================================================
-// Helper: AgentKind Display Implementation
-// =============================================================================
-
-impl fmt::Display for AgentKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AgentKind::Research => write!(f, "research"),
-            AgentKind::Writing => write!(f, "writing"),
-            AgentKind::CodeReview => write!(f, "code_review"),
-            AgentKind::Analysis => write!(f, "analysis"),
-            AgentKind::Planning => write!(f, "planning"),
-            AgentKind::Custom(s) => write!(f, "custom:{}", s),
-        }
-    }
-}
-
 // =============================================================================
 // Tests
 // =============================================================================
@@ -497,16 +481,6 @@ mod tests {
         assert!(output.contains("Total spawned:      100"));
         assert!(output.contains("research"));
         assert!(output.contains("writing"));
-    }
-
-    #[test]
-    fn test_agent_kind_display() {
-        assert_eq!(AgentKind::Research.to_string(), "research");
-        assert_eq!(AgentKind::Writing.to_string(), "writing");
-        assert_eq!(
-            AgentKind::Custom("my-agent".into()).to_string(),
-            "custom:my-agent"
-        );
     }
 
     #[tokio::test]

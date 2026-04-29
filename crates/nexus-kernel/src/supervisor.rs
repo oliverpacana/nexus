@@ -10,10 +10,11 @@ use uuid::Uuid;
 
 use nexus_proto::agent::AgentId;
 
-use crate::agent::{AgentRegistry, AgentTask};
+use crate::agent::AgentTask;
+use crate::registry::AgentRegistry;
 use crate::capabilities::CapabilityGuard;
 use crate::error::{KernelError, Result};
-use crate::message::ChannelTx;
+use nexus_proto::message::ChannelTx;
 
 // =============================================================================
 // RestartStrategy — Fault Tolerance Policies

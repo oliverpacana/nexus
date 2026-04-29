@@ -194,7 +194,8 @@ impl KernelHandle {
         self.inner.registry.stats()
     }
 
-    /// Subscribes to kernel event broadcasts.    pub fn subscribe_events(&self) -> broadcast::Receiver<KernelEvent> {
+    /// Subscribes to kernel event broadcasts.
+    pub fn subscribe_events(&self) -> broadcast::Receiver<KernelEvent> {
         self.inner.event_bus.subscribe()
     }
 }
@@ -250,7 +251,7 @@ impl Kernel {
     /// # Errors
     /// Returns `KernelError` if initialization fails (e.g., Tokio runtime issues).
     #[instrument(skip(config), fields(kernel_id = %uuid::Uuid::new_v4()))]
-    pub async fn new(config: KernelConfig) -> Result<(Self, mpsc::Receiver<Envelope>)> {
+    pub async fn new(config: KernelConfig) -> Result<Self> {
         let kernel_id = format!("nexus-{}", uuid::Uuid::new_v4());
         info!(kernel_id = %kernel_id, ?config, "initializing kernel");
 
@@ -283,7 +284,7 @@ impl Kernel {
         };
 
         info!(kernel_id = %inner.id, "kernel initialized");
-        Ok((kernel, outbox_rx))
+        Ok(kernel)
     }
 
     /// Spawns a new agent with the given task and options.
@@ -733,7 +734,7 @@ mod tests {
             max_agents: 10,
             ..Default::default()
         };
-        let (kernel, _rx) = Kernel::new(config).await.unwrap();
+        let kernel = Kernel::new(config).await.unwrap();
 
         let opts = SpawnOptions {
             name: Some("test-agent".into()),
@@ -759,7 +760,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (kernel, _rx) = Kernel::new(config).await.unwrap();
+        let kernel = Kernel::new(config).await.unwrap();
 
         // Spawn up to limit
         for i in 0..2 {
@@ -811,7 +812,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_kernel_handle_clone() {
-        let (kernel, _rx) = Kernel::new(KernelConfig::default()).await.unwrap();
+        let kernel = Kernel::new(KernelConfig::default()).await.unwrap();
         let handle = kernel.handle();
 
         // Handle should be cheaply cloneable

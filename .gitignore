@@ -144,3 +144,4 @@ __pycache__/
 # IDE project settings that are user-specific
 *.sublime-project
 *.sublime-workspace
+.gemini/

@@ -47,7 +47,8 @@ pub enum Capability {
     MeshBroadcast,
 
     /// Permission to install new WASM tools into the local registry.
-    /// This is a privileged capability; typically only granted to admin agents.    ToolInstall,
+    /// This is a privileged capability; typically only granted to admin agents.
+    ToolInstall,
 
     /// Permission to spawn child agents, with a limit on concurrent children.
     SpawnAgent {
